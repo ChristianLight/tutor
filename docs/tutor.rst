@@ -68,9 +68,18 @@ You can then browse the documentation with::
 Releasing a new version
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Bump the ``__version__`` value in ``tutor/__about__.py``. (see :ref:`versioning` below)
-- Collect changelog entries with ``make changelog``.
-- Create a commit with the version changelog.
+Releasing a version includes two phases:
+
+1. Add changes and generate individual changelog entries:
+
+- run ``make changelog-entry``(or ``scriv create``) command - It will create changelog entries in a folder named changelog.d for the changes user has done for releasing a new version.
+- Commit and merge all the changes including the changelog entries. e.g this `commit <https://github.com/overhangio/tutor-discovery/commit/e30a78936d63439bde069aeff11960585bd81592>`__.
+
+2. Update version and compile changelogs:
+
+- Now bump the ``__version__`` value in ``tutor/__about__.py``. (see :ref:`versioning` below).
+- Collect changelog entries with ``make changelog``(or ``scriv collect``) command - It will delete all previous changelog entries from changelog.d folder and will add records of those entries to CHANGELOG.md file.
+- Create a commit with the version changelog e.g. this `commit <https://github.com/overhangio/tutor-discovery/commit/18cce706a794c4968e713f0f72c6b912a2ff1e53>`__.
 - Run tests with ``make test``.
 - Push your changes to the upstream repository.
 
@@ -91,7 +100,7 @@ When making a new Tutor release, increment the:
 
 An optional BRANCH suffix may be appended to the release name to indicate that extra changes were added on top of the latest release. For instance, "x.y.z-nightly" corresponds to release x.y.z on top of which extra changes were added to make it compatible with the Open edX master branches (see the :ref:`tutorial on running Tutor Nightly <nightly>`).
 
-`Officially-supported plugins <https://overhang.io/tutor/plugins>`__ follow the same versioning pattern. As a third-party plugin developer, you are encouraged to use the same pattern to make it immediately clear to your end-users which Open edX versions are supported.
+`Officially-supported plugins <https://edly.io/tutor/plugins-and-themes/>`__ follow the same versioning pattern. As a third-party plugin developer, you are encouraged to use the same pattern to make it immediately clear to your end-users which Open edX versions are supported.
 
 In Tutor and its officially-supported plugins, certain features, API endpoints, and older depenency versions are periodically deprecated. Generally, warnings are added to the Changelogs and/or the command-line interface one major release before support for any behavior is removed. In order to keep track of pending removals in the source code, comments containing the string ``REMOVE-AFTER-VXX`` should be used, where ``<XX>`` is the last major version that must support the behavior. For example::
 

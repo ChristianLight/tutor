@@ -15,6 +15,8 @@ def ask_questions(config: Config, run_for_prod: Optional[bool] = None) -> None:
         config: Existing (or minimal) configuration. Modified in-place.
         run_for_prod: Whether platform should be configured for production.
             If None, then ask the user.
+    Returns:
+        None
     """
     defaults = tutor_config.get_defaults()
     if run_for_prod is None:

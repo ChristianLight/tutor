@@ -2,13 +2,15 @@
 # This file includes all Tutor setting defaults. Settings that do not have a
 # default value, such as passwords, should be stored in base.yml.
 # This must be defined early
+ATLAS_REVISION: "{% if OPENEDX_COMMON_VERSION == 'master' %}main{% else %}{{ OPENEDX_COMMON_VERSION }}{% endif %}"
+ATLAS_REPOSITORY: "openedx/openedx-translations"
+ATLAS_OPTIONS: ""
 CADDY_HTTP_PORT: 80
 CMS_HOST: "studio.{{ LMS_HOST }}"
 CMS_OAUTH2_KEY_SSO: "cms-sso"
 CMS_OAUTH2_KEY_SSO_DEV: "cms-sso-dev"
 CONTACT_EMAIL: "contact@{{ LMS_HOST }}"
 DEV_PROJECT_NAME: "{{ TUTOR_APP }}_dev"
-DOCKER_COMPOSE_VERSION: "3.7"
 DOCKER_REGISTRY: "docker.io/"
 DOCKER_IMAGE_OPENEDX: "{{ DOCKER_REGISTRY }}overhangio/openedx:{{ TUTOR_VERSION }}"
 DOCKER_IMAGE_OPENEDX_DEV: "openedx-dev:{{ TUTOR_VERSION }}"
@@ -17,12 +19,12 @@ DOCKER_IMAGE_CADDY: "docker.io/caddy:2.7.4"
 # https://hub.docker.com/_/elasticsearch/tags
 DOCKER_IMAGE_ELASTICSEARCH: "docker.io/elasticsearch:7.17.13"
 # https://hub.docker.com/_/mongo/tags
-DOCKER_IMAGE_MONGODB: "docker.io/mongo:4.4.25"
+DOCKER_IMAGE_MONGODB: "docker.io/mongo:7.0.7"
 # https://hub.docker.com/_/mysql/tags
-DOCKER_IMAGE_MYSQL: "docker.io/mysql:8.1.0"
+DOCKER_IMAGE_MYSQL: "docker.io/mysql:8.4.0"
 DOCKER_IMAGE_PERMISSIONS: "{{ DOCKER_REGISTRY }}overhangio/openedx-permissions:{{ TUTOR_VERSION }}"
 # https://hub.docker.com/_/redis/tags
-DOCKER_IMAGE_REDIS: "docker.io/redis:7.2.1"
+DOCKER_IMAGE_REDIS: "docker.io/redis:7.2.4"
 # https://hub.docker.com/r/devture/exim-relay/tags
 DOCKER_IMAGE_SMTP: "docker.io/devture/exim-relay:4.96-r1-0"
 EDX_PLATFORM_REPOSITORY: "https://github.com/openedx/edx-platform.git"
@@ -59,7 +61,7 @@ OPENEDX_LMS_UWSGI_WORKERS: 2
 OPENEDX_MYSQL_DATABASE: "openedx"
 OPENEDX_MYSQL_USERNAME: "openedx"
 # the common version will be automatically set to "master" in the nightly branch
-OPENEDX_COMMON_VERSION: "open-release/quince.1"
+OPENEDX_COMMON_VERSION: "open-release/redwood.3"
 OPENEDX_EXTRA_PIP_REQUIREMENTS: []
 MYSQL_HOST: "mysql"
 MYSQL_PORT: 3306

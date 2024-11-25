@@ -20,6 +20,143 @@ instructions, because git commits are used to generate release notes:
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-18.1.4'></a>
+## v18.1.4 (2024-10-24)
+
+- [Improvement] Set `EDXAPP_TEST_MONGO_HOST` env var in the openedx-dev image so that it no longer needs to be set by hand when running edx-platform unit tests (by @kdmccormick).
+
+- [Feature] Added `-c` or `--clean` option to tutor config save: For plugin developers and advanced users, this option cleans the `env/` folder before saving, ensuring a fresh environment for testing and development. (by @CodeWithEmad)
+
+- [Feature] Add a `patches show my-patch-name`. This is a convenient command for the troubleshooting of plugins. (by @regisb)
+
+- [Improvement] Fixes an issue which caused 502 errors by a premature closed connection by uwsgi, it also improves the handling of SIGTERM in docker and other uwsgi improvements (by @Ian2012).
+
+- [Improvement] Do not run useless celery workers (lms-worker, cms-worker) in development. This should save us ~700MB memory. (by @arbrandes, @regisb).
+
+- [Bugfix] Fixed an issue where the site name was not limited to 50 characters when creating a new site configuration. (by @CodeWithEmad)
+
+- [Feature] Update Open edX version to redwood.3 (by @dawoudsheraz)
+
+<a id='changelog-18.1.3'></a>
+## v18.1.3 (2024-08-13)
+
+- [Feature] Update to redwood.2 tag (by @dawoudsheraz)
+
+<a id='changelog-18.1.2'></a>
+## v18.1.2 (2024-07-26)
+
+- [Security] Add upstream security fix as patch in Open edX image (by @dawoudsheraz)
+
+<a id='changelog-18.1.1'></a>
+## v18.1.1 (2024-07-04)
+
+- [Bugfix] Fix `mysql-native-password is not loaded` error in MySQL 8.4 when upgrading from tutor 15 or an earlier release to tutor 18 by enabling the plugin. (by @Danyal-Faheem)
+
+<a id='changelog-18.1.0'></a>
+## v18.1.0 (2024-06-25)
+
+- 💥[Feature] Upgrade default charset and collation of mysql to "utf8mb4" and "utf8mb4_unicode_ci" respectively. This upgrade should be automatic for most users. However, if you are running a third-party MySQL (i.e. `RUN_MYSQL=false`), you are expected to upgrade manually. Please refer to the third-party provider's documentation for detailed upgrade instructions. Ensuring that your MySQL version is up-to-date is crucial for maintaining compatibility and security. (by @Danyal-Faheem)
+- [Bugfix] Do not fail on start when there are not persistent volume claims to apply. (by @snglth)
+- [Bugfix] Fix legacy warnings during Docker build. (by @regisb)
+
+<a id='changelog-18.0.0'></a>
+## v18.0.0 (2024-06-19)
+
+- 💥[Feature] Upgrade to Redwood (by @dawoudsheraz)
+- [Bugfix] Wrap Django5 warning imports in try-except block to avoid failures in django3 that's still in use in edx-platform's master branch (by @mariajgrimaldi).
+- 💥[Feature] Pull translations via `atlas` during Docker build. This breaks the `openedx-i18n` custom locale Tutor feature in favor of [OEP-58](https://docs.openedx.org/en/latest/developers/concepts/oep58.html) in favor of <https://github.com/openedx/openedx-translations>. (by @omarithawi)
+- 💥[Feature] The `openedx-assets` command is replaced with `npm run` subcommands. This will slightly reduce the build time for edx-platform assets and comprehensive themes. It will also open up the door for more significant build time reductions in the future. Here is a migration guide, where each command is to be run in the `lms` or `cms` container:
+
+  **Before**                               | **After**
+  -----------------------------------------|-------------------------------------------------------------------------------------
+  `openedx-assets build --env=prod ARGS`   | `npm run build -- ARGS`
+  `openedx-assets build --env=dev ARGS`    | `npm run build-dev -- ARGS`
+  `openedx-assets common --env=prod ARGS`  | `npm run compile-sass -- --skip-themes ARGS`
+  `openedx-assets common --env=dev ARGS`   | `npm run compile-sass-dev -- --skip-themes ARGS`
+  `openedx-assets webpack --env=prod ARGS` | `npm run webpack -- ARGS`
+  `openedx-assets webpack --env=dev ARGS`  | `npm run webpack-dev -- ARGS`
+  `openedx-assets npm`                     | `npm run postinstall` (`npm clean-install` runs this automatically)
+  `openedx-assets xmodule`                 | (no longer necessary)
+  `openedx-assets collect ARGS`            | `./manage.py lms collectstatic --noinput ARGS && ./manage.py cms collectstatic ARGS`
+  `openedx-assets watch-themes ARGS`       | `npm run watch-themes -- ARGS`
+
+For more details, see the [deprecation notice for paver](https://github.com/openedx/edx-platform/issues/34467)
+and the [static assets reference](https://github.com/openedx/edx-platform/tree/open-release/redwood.master/docs/references/static-assets.rst)
+in edx-platform.
+
+- 💥[Feature] Update MongoDB to v7.0.7 (by @dawoudsheraz) MongoDB is upgraded from version 4.4 to 7.0. Since there have been major releases since 4.4, the upgrade will need to go through them before running Mongo 7. MongoDB would need to follow 4.4 --> 5.0 --> 6.0 --> 7.0 upgrade path to work correctly. The container will keep on restarting with featureCompatibility error if the upgrade path is not followed. To upgrade mongo, run the following command based in the appropriate environment:
+
+    tutor <dev|local|k8s> upgrade --from=quince
+
+For k8s only, the above command will not perform the upgrade automatically. Instead, the command will output a series of commands that would need to be run manually to carry out the upgrade.
+
+- [Improvement] Upgrade Nodejs from 16.14.0 to 18.20.1 in edx-platform. (by @regisb)
+- [Improvement] Auto-detect bind mounts of openedx-learning for edx-platform (by @bradenmacdonald)
+- [Feature] Upgrade Open edX image to use Python 3.11 (by @dawoudsheraz)
+- [Bugfix] Remove CORS_ALLOW_HEADERS setting from the LMS/Studio config template. This setting, which holds site-agnostic application logic, is now consistently set to a reasonable value upstream by LMS and CMS config. Using the upstream values fixes a bug where course import in Studio using the new Course Authoring MFE was broken in Tutor deployments because it required additional headers to be allowed (content-range and content-disposition) (by @ormsbee)
+- [Improvement] Made Docker cache hits more frequent during the openedx image build via BuildKit's `COPY --link` feature (by @kdmccormick).
+- 💥[Improvement] Upgrade MySQL to 8.4.0. The upgrade should be automatic for most users. However, if you are running a third-party MySQL (i.e., RUN_MYSQL=false), you are expected to upgrade manually. Please refer to the third-party provider's documentation for detailed upgrade instructions. Ensuring that your MySQL version is up-to-date is crucial for maintaining compatibility and security. (by @rohansaeed)
+- 💥[Improvement] Ensure that the edx-platform repository git checkout is cached by Docker during image build. This means that the cache will automatically be cleared any time there is an upstream change. Thus, it is no longer necessary to run `tutor images build --no-cache` just to fetch the latest edx-platform changes. For this to work, any GitHub repository referenced by `EDX_PLATFORM_REPOSITORY` needs to end with ".git". Make sure that this is the case if you have modified the value of this setting in the past. (by @regisb)
+
+<a id='changelog-17.0.6'></a>
+## v17.0.6 (2024-06-13)
+
+- [Feature] Introduces the IS_FILE_RENDERED Filter, which allows developers to specify files that should be copied directly without rendering. This update empowers developers to manage special file types, ensuring that they are transferred intact without undergoing template processing. (by @Abdul-Muqadim-Arbisoft)
+
+- [Improvement]  Remove the obsolete `version` property from all Docker Compose files and remove the DOCKER_COMPOSE_VERSION config setting. This addresses the deprecation warning from docker-compose (version 1.27 and above) regarding `version` being obsolete. (by @jasonmokk)
+
+- [Bugfix] Fix permissions error on windows when running `tutor dev start` (by @Danyal-Faheem)
+
+<a id='changelog-17.0.5'></a>
+## v17.0.5 (2024-05-22)
+
+- [Feature] Introduces the CONFIG_USER Filter. Used to declare unique key:value pairs in config.yml that will be overwritten when running tutor config save. Useful for injecting secrets from an external secrets manager into edx, or other values that may change over time that you need to programmatically fetch. (by @abonnell)
+
+- [Improvement] Add ability to patch proxy configuration for Caddy (by @ravikhetani)
+
+- [Security] Add Upstream "Privilege re-escalation in Studio after staff access removed" git security patch in Open edX Image(by @dawoudsheraz)
+
+<a id='changelog-17.0.4'></a>
+## v17.0.4 (2024-04-09)
+
+- [Security] Update Redis to 7.2.4 (by @dawoudsheraz)
+
+- [Improvement] Update release to open-release/quince.3 (by @dawoudsheraz)
+
+<a id='changelog-17.0.3'></a>
+## v17.0.3 (2024-03-26)
+
+- 💥[Bugfix] Prevent infinite growth of course structure cache in Redis. (by @regisb)
+  - Redis is now configured with a maximum memory size of 4GB. If this is too low for your platform, you should increase this value using the new "redis-conf" patch.
+  - Make sure that course structure cache keys have an actual timeout.
+- [Feature] Introduce the "redis-conf" patch. (by @regisb)
+- [Bugfix] Fix merge conflicts in nightly when trying to apply patches from the master branch. (by @regisb)
+- [Bugfix] Ensure mounted installable packages are installed as expected upon initialization. (by @dawoudsheraz)
+
+<a id='changelog-17.0.2'></a>
+## v17.0.2 (2024-02-09)
+
+- [Feature] Several enhancements to the Demo Course (by @kdmccormick):
+  - The [Open edX Demo Course](https://github.com/openedx/openedx-demo-course) has been re-built from scratch with up-to-date instruction-focused content. Its directory structure has changed.
+  - In order to support both the old and new structures of the Demo Course's repository, the command `tutor local do importdemocourse` will now auto-determine the course root based on the location of `course.xml`. Use the `--repo-dir` argument to override this behavior.
+  - The new command `tutor local do importdemolibraries` will import any content libraries defined within the Demo Course repository. At the moment, that is just the "Respiratory System Question Bank", which is an optional but helpful extension to the new Demo Course.
+  - To try out the new Demo Course now, run: `tutor local do importdemocourse --version master`.
+  - To try out the demo Respiratory System Question Bank now, run: `tutor local do importdemolibraries --version master`.
+  - To revert back to an older Demo Course version at any point, run: `tutor local do importdemocourse --version open-release/quince.2`, replacing `quince.2` with your preferred course version.
+- [Bugfix] Remove duplicate volume declarations that cause `docker compose` v2.24.1 to fail.
+- [Bugfix] Actually update the environment on `tutor plugins enable ...`. (by @regisb)
+- [Feature] Introduce a `tutor.hooks.lru_cache` decorator that is automatically cleared whenever a plugin is loaded or unloaded. This is useful, in particular when a plugin implements a costly function that depends on tutor hooks. (by @regisb)
+- [Bugfix] Fix compatibility with Python 3.12 by replacing pkg_resources with importlib_metadata and importlib_resources. (by @Danyal-Faheem)
+- [Improvement] Upgrade base release to open-release/quince.2. (by @regisb)
+
+<a id='changelog-17.0.1'></a>
+## v17.0.1 (2024-01-25)
+
+- [Bugfix] Error "'Crypto.PublicKey.RSA.RsaKey object' has no attribute 'dq'" during `tutor config save` was caused by outdated minimum version of the pycryptodome package. To resolve this issue, run `pip install --upgrade pycryptodome`. (by @regisb)
+- [Feature] add `CONFIG_INTERACTIVE` action that allows tutor plugins to interact with the configuration at the time of the interactive questionnaire that happens during tutor local launch. (by @Alec4r).
+- [Improvement] Add `.webp` and. `.otf` extensions to list of binary extensions to ignore when rendering templates.
+- [Security] Fix JWT scopes in XBlock callbacks. (by @regisb)
+
 <a id='changelog-17.0.0'></a>
 ## v17.0.0 (2023-12-09)
 

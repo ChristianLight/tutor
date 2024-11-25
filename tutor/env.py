@@ -6,16 +6,26 @@ import shutil
 import typing as t
 from copy import deepcopy
 
+import importlib_resources
 import jinja2
-import pkg_resources
 
 from tutor import exceptions, fmt, hooks, plugins, utils
 from tutor.__about__ import __app__, __version__
 from tutor.types import Config, ConfigValue
 
-TEMPLATES_ROOT = pkg_resources.resource_filename("tutor", "templates")
+TEMPLATES_ROOT = str(importlib_resources.files("tutor") / "templates")
 VERSION_FILENAME = "version"
-BIN_FILE_EXTENSIONS = [".ico", ".jpg", ".patch", ".png", ".ttf", ".woff", ".woff2"]
+BIN_FILE_EXTENSIONS = [
+    ".ico",
+    ".jpg",
+    ".otf",
+    ".patch",
+    ".png",
+    ".ttf",
+    ".webp",
+    ".woff",
+    ".woff2",
+]
 JinjaFilter = t.Callable[..., t.Any]
 
 
@@ -184,8 +194,7 @@ class Renderer:
         The template_name *always* uses "/" separators, and is not os-dependent. Do not pass the result of
         os.path.join(...) to this function.
         """
-        if is_binary_file(template_name):
-            # Don't try to render binary files
+        if not hooks.Filters.IS_FILE_RENDERED.apply(True, template_name):
             return self.environment.read_bytes(template_name)
 
         try:
@@ -458,6 +467,7 @@ def get_release(version: str) -> str:
         "15": "olive",
         "16": "palm",
         "17": "quince",
+        "18": "redwood",
     }[version.split(".", maxsplit=1)[0]]
 
 
@@ -523,6 +533,20 @@ def root_dir(root: str) -> str:
     return os.path.abspath(root)
 
 
+def delete_env_dir(root: str) -> None:
+    env_path = base_dir(root)
+
+    try:
+        shutil.rmtree(env_path)
+        fmt.echo_alert(f"Removed existing Tutor environment at: {env_path}")
+    except PermissionError as e:
+        raise exceptions.TutorError(
+            f"Permission Denied while trying to remove existing Tutor environment at: {env_path}"
+        ) from e
+    except FileNotFoundError:
+        fmt.echo_info(f"No existing Tutor environment to remove at: {env_path}")
+
+
 @hooks.Actions.PLUGIN_UNLOADED.add()
 def _delete_plugin_templates(plugin: str, root: str, _config: Config) -> None:
     """
@@ -541,3 +565,24 @@ def _delete_plugin_templates(plugin: str, root: str, _config: Config) -> None:
                 raise exceptions.TutorError(
                     f"Could not delete file {e.filename} from plugin {plugin} in folder {path}"
                 )
+
+
+@hooks.Filters.IS_FILE_RENDERED.add()
+def _do_not_render_binary_files(result: bool, path: str) -> bool:
+    """
+    Determine whether a file should be rendered based on its binary nature.
+
+    This function checks if a file is binary and updates the rendering decision accordingly.
+    If the initial decision (`result`) is to render the file, but the file is detected as binary,
+    the function will override this decision to prevent rendering.
+
+    Parameters:
+    - result (bool): The initial decision on whether the file should be rendered.
+    - path (str): The file path to check for binary content.
+
+    Returns:
+    - bool: False if the file is binary and was initially set to be rendered, otherwise returns the initial decision.
+    """
+    if result and is_binary_file(path):
+        result = False
+    return result

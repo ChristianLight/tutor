@@ -95,7 +95,7 @@ spec:
               name: settings-cms
             - mountPath: /openedx/config
               name: config
-            - mountPath: /openedx/edx-platform/uwsgi.ini
+            - mountPath: /openedx/uwsgi.ini
               name: uwsgi-config
               subPath: uwsgi.ini
           resources:
@@ -141,7 +141,9 @@ spec:
       containers:
         - name: cms-worker
           image: {{ DOCKER_IMAGE_OPENEDX }}
-          args: ["celery", "--app=cms.celery", "worker", "--loglevel=info", "--hostname=edx.cms.core.default.%%h", "--max-tasks-per-child", "100", "--exclude-queues=edx.lms.core.default"]
+          args:
+          {% for value in iter_cms_celery_parameters() %}
+          - "{{value}}"{% endfor %}
           env:
           - name: SERVICE_VARIANT
             value: cms
@@ -204,7 +206,7 @@ spec:
               name: settings-cms
             - mountPath: /openedx/config
               name: config
-            - mountPath: /openedx/edx-platform/uwsgi.ini
+            - mountPath: /openedx/uwsgi.ini
               name: uwsgi-config
               subPath: uwsgi.ini
           resources:
@@ -250,7 +252,8 @@ spec:
       containers:
         - name: lms-worker
           image: {{ DOCKER_IMAGE_OPENEDX }}
-          args: ["celery", "--app=lms.celery", "worker", "--loglevel=info", "--hostname=edx.lms.core.default.%%h", "--max-tasks-per-child=100", "--exclude-queues=edx.cms.core.default"]
+          args: {% for value in iter_lms_celery_parameters() %}
+          - "{{value}}"{% endfor %}
           env:
           - name: SERVICE_VARIANT
             value: lms
@@ -352,7 +355,7 @@ spec:
       containers:
         - name: mongodb
           image: {{ DOCKER_IMAGE_MONGODB }}
-          args: ["mongod", "--nojournal", "--storageEngine", "wiredTiger"]
+          args: ["mongod", "--storageEngine", "wiredTiger"]
           ports:
             - containerPort: 27017
           volumeMounts:
@@ -394,9 +397,10 @@ spec:
           image: {{ DOCKER_IMAGE_MYSQL }}
           args:
             - "mysqld"
-            - "--character-set-server=utf8mb3"
-            - "--collation-server=utf8mb3_general_ci"
+            - "--character-set-server=utf8mb4"
+            - "--collation-server=utf8mb4_unicode_ci"
             - "--binlog-expire-logs-seconds=259200"
+            - "--mysql-native-password=ON"
           env:
             - name: MYSQL_ROOT_PASSWORD
               value: "{{ MYSQL_ROOT_PASSWORD }}"
